@@ -10,11 +10,14 @@ import CircularProgress from '@material-ui/core/CircularProgress';
 
 import QuestionSingleChoice from 'components/QuestionSingleChoice';
 
+import { InterviewData } from 'types/Interview';
 import { QuestionData } from 'types/QuestionData';
-import { Status } from 'types/Interview';
-import data from './data.json';
 import { useHistory, useParams } from 'react-router-dom';
 import QuestionText from '../../components/QuestionText';
+
+import Api from 'services/Api';
+import { apiPaths, interviewStatus } from 'const';
+import api from 'services/Api';
 
 const useStyles = makeStyles((theme) => ({
     paper: {
@@ -51,13 +54,13 @@ export default function Interview() {
     const [status, setStatus] = useState<string>('');
     const [questions, setQuestions] = useState<QuestionData[]>([]);
     const [answers, setAnswers] = useState<{[key: string]: string | null}>({});
-    const submit = useCallback(() => {
-        console.log(id, answers);
-        setStatus(Status.FINISHED)
-    }, [answers]);
 
-    useEffect(() => {
-        setTimeout(() => {
+    const load = useCallback(async () => {
+        const data: InterviewData = await Api.get(apiPaths.interview(id));
+
+        setStatus(data.status);
+
+        if (data.status !== interviewStatus.FINISHED) {
             const answers: { [key: string]: string | null } = {};
             data.questions.forEach(q => {
                 answers[q.id] = null;
@@ -65,11 +68,33 @@ export default function Interview() {
 
             setAnswers(answers);
             setQuestions(data.questions as any);
-        }, 2000);
-    }, []);
+        }
+    }, [id]);
+
+    const submit = useCallback(async () => {
+        const data = {
+            submissionId: id,
+            answers: Object.entries(answers).map(([qId, val]) => {
+                return {
+                    "questionId": qId,
+                    "questionType": questions.find(q => q.id === qId)!.type,
+                    "value": val
+                }
+            })
+        };
+        setQuestions([]);
+        await api.post(apiPaths.submissions(), data);
+        await load();
+    }, [answers]);
 
     useEffect(() => {
-        if (status === Status.FINISHED) {
+        if (id) {
+            load();
+        }
+    }, [load]);
+
+    useEffect(() => {
+        if (status === interviewStatus.FINISHED) {
             push('/interviews/finished');
         }
     }, [status]);
