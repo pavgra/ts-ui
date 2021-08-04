@@ -15,7 +15,6 @@ import { QuestionData } from 'types/QuestionData';
 import { useHistory, useParams } from 'react-router-dom';
 import QuestionText from '../../components/QuestionText';
 
-import Api from 'services/Api';
 import { apiPaths, interviewStatus } from 'const';
 import api from 'services/Api';
 
@@ -56,7 +55,7 @@ export default function Interview() {
     const [answers, setAnswers] = useState<{[key: string]: string | null}>({});
 
     const load = useCallback(async () => {
-        const data: InterviewData = await Api.get(apiPaths.interview(id));
+        const data: InterviewData = await api.get(apiPaths.interview(id));
 
         setStatus(data.status);
 
@@ -73,7 +72,7 @@ export default function Interview() {
 
     const submit = useCallback(async () => {
         const data = {
-            submissionId: id,
+            interviewId: id,
             answers: Object.entries(answers).map(([qId, val]) => {
                 return {
                     "questionId": qId,

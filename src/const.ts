@@ -1,5 +1,9 @@
+const paths = {
+    interviewPreview: (id: string) => `/interviews/${id}/preview`
+}
+
 const apiPaths = {
-    interview: (id: string) => `/api/v1/interviews/${id}`,
+    interview: (id?: string) => '/api/v1/interviews' + (id ? `/${id}` : ''),
     submissions: () => `/api/v1/submissions`,
 };
 
@@ -10,5 +14,6 @@ const interviewStatus = {
 
 export {
     apiPaths,
-    interviewStatus
+    interviewStatus,
+    paths,
 }
